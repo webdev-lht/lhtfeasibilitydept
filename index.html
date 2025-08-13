@@ -32,15 +32,27 @@
       display:flex; gap: 12px;
       justify-content:space-between; align-items:center;
       font-size: clamp(1.1rem, 3.8vw, 1.5rem);
-      font-weight:700; margin-bottom:12px;
+      font-weight:700; margin-bottom:10px;
       box-shadow: 0 1px 2px rgba(0,0,0,.04);
+      cursor:pointer;
+      position:relative;
+      transition: box-shadow .15s ease-in-out;
     }
-    .label { text-align:left; line-height:1.2; }
+    .kpi:hover{ box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .kpi .chev{ position:absolute; right:12px; top:50%; transform: translateY(-50%) rotate(0deg); transition: transform .2s ease; font-size:1rem; opacity:.7; }
+    .kpi[aria-expanded="true"] .chev{ transform: translateY(-50%) rotate(180deg); }
+
+    .label { text-align:left; line-height:1.2; padding-right:28px; }
     .value { text-align:right; font-size: clamp(1.6rem, 7vw, 2.25rem); }
 
     .ready { background:#d1e7dd; color:#0f5132; }
     .skip { background:#fff3cd; color:#664d03; }
     .explored { background:#cfe2ff; color:#084298; }
+
+    .breakdown { background:#ffffff; border:1px solid #e9ecef; border-radius:12px; padding:10px 14px; margin:0 2px 14px 2px; }
+    .breakdown .row{ --bs-gutter-x: .75rem; }
+    .bk-label{ font-weight:600; color:#495057; }
+    .bk-value{ font-weight:800; }
 
     @media (pointer:coarse){ .kpi{ padding: 20px; } }
   </style>
@@ -56,20 +68,77 @@
   <main>
     <h1 class="page-title">Feasibility Department Summary</h1>
 
-    <div class="kpi ready">
+    <!-- Ready for Calling -->
+    <div class="kpi ready collapsed" data-bs-toggle="collapse" data-bs-target="#cReady" aria-expanded="false">
       <div class="label">Properties Ready for Calling</div>
       <div id="kpiReady" class="value">0</div>
+      <span class="chev">▾</span>
     </div>
-    <div class="kpi skip">
+    <div id="cReady" class="collapse">
+      <div class="breakdown">
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">EWT</div>
+          <div class="col-auto bk-value" id="readyEWT">0</div>
+        </div>
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">OTM</div>
+          <div class="col-auto bk-value" id="readyOTM">0</div>
+        </div>
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">EWT from OTM</div>
+          <div class="col-auto bk-value" id="readyEWTOTM">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- For Skip Tracing -->
+    <div class="kpi skip collapsed" data-bs-toggle="collapse" data-bs-target="#cSkip" aria-expanded="false">
       <div class="label">Properties for Skip Tracing</div>
       <div id="kpiSkip" class="value">0</div>
+      <span class="chev">▾</span>
     </div>
-    <div class="kpi explored">
+    <div id="cSkip" class="collapse">
+      <div class="breakdown">
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">EWT</div>
+          <div class="col-auto bk-value" id="skipEWT">0</div>
+        </div>
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">OTM</div>
+          <div class="col-auto bk-value" id="skipOTM">0</div>
+        </div>
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">EWT from OTM</div>
+          <div class="col-auto bk-value" id="skipEWTOTM">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Explored (Today) -->
+    <div class="kpi explored collapsed" data-bs-toggle="collapse" data-bs-target="#cExplored" aria-expanded="false">
       <div class="label">Total Properties Explored (Today)</div>
       <div id="kpiExplored" class="value">0</div>
+      <span class="chev">▾</span>
+    </div>
+    <div id="cExplored" class="collapse">
+      <div class="breakdown">
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">EWT</div>
+          <div class="col-auto bk-value" id="expEWT">0</div>
+        </div>
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">OTM</div>
+          <div class="col-auto bk-value" id="expOTM">0</div>
+        </div>
+        <div class="row align-items-center py-1">
+          <div class="col bk-label">EWT from OTM</div>
+          <div class="col-auto bk-value" id="expEWTOTM">0</div>
+        </div>
+      </div>
     </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // --- Live Clock & Date (US Central time) ---
     const clockEl = document.getElementById('clock');
@@ -89,26 +158,66 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // --- Demo data; swap with SharePoint later ---
+    // --- Demo data; replace with SharePoint/Make feed ---
+    // Expect a field like `lead_type` with values: 'EWT' | 'OTM' | 'EWT_from_OTM'
+    // and `status`: 'discovered' | 'filtered' | 'skip_traced' | 'sent_to_sales'
     function demoData(){
       return [
-        {status:'sent_to_sales'},
-        {status:'sent_to_sales'},
-        {status:'filtered'},
-        {status:'discovered'}
+        {lead_type:'EWT', status:'sent_to_sales'},
+        {lead_type:'OTM', status:'sent_to_sales'},
+        {lead_type:'EWT_from_OTM', status:'filtered'},
+        {lead_type:'EWT', status:'discovered'},
+        {lead_type:'OTM', status:'filtered'},
+        {lead_type:'EWT', status:'sent_to_sales'}
       ];
     }
+
+    function countByType(items){
+      const c = {EWT:0, OTM:0, EWT_from_OTM:0};
+      for(const it of items){
+        const k = (it.lead_type||'').toString();
+        if(k in c) c[k]++;
+      }
+      return c;
+    }
+
     function render(){
       const data = demoData();
-      const ready = data.filter(x=>x.status==='sent_to_sales').length;
-      const skip = data.filter(x=>x.status==='filtered').length;
-      const explored = data.length;
+      // Ready = sent_to_sales
+      const readyItems = data.filter(x=>x.status==='sent_to_sales');
+      const ready = readyItems.length;
+      const rC = countByType(readyItems);
+
+      // Skip = filtered
+      const skipItems = data.filter(x=>x.status==='filtered');
+      const skip = skipItems.length;
+      const sC = countByType(skipItems);
+
+      // Explored today = all today; demo uses all rows
+      const exploredItems = data; // TODO: filter by CST date if needed
+      const explored = exploredItems.length;
+      const eC = countByType(exploredItems);
+
       document.getElementById('kpiReady').textContent = ready;
+      document.getElementById('readyEWT').textContent = rC.EWT;
+      document.getElementById('readyOTM').textContent = rC.OTM;
+      document.getElementById('readyEWTOTM').textContent = rC.EWT_from_OTM;
+
       document.getElementById('kpiSkip').textContent = skip;
+      document.getElementById('skipEWT').textContent = sC.EWT;
+      document.getElementById('skipOTM').textContent = sC.OTM;
+      document.getElementById('skipEWTOTM').textContent = sC.EWT_from_OTM;
+
       document.getElementById('kpiExplored').textContent = explored;
+      document.getElementById('expEWT').textContent = eC.EWT;
+      document.getElementById('expOTM').textContent = eC.OTM;
+      document.getElementById('expEWTOTM').textContent = eC.EWT_from_OTM;
     }
+
     render();
+
   </script>
 </body>
 </html>
+
 
