@@ -158,7 +158,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // --- Demo data; replace with SharePoint/Make feed ---
+    // --- Data; replace with SharePoint/Make feed ---
     // Expect a field like `lead_type` with values: 'EWT' | 'OTM' | 'EWT_from_OTM'
     // and `status`: 'discovered' | 'filtered' | 'skip_traced' | 'sent_to_sales'
     function demoData(){
@@ -216,8 +216,13 @@
 
     render();
 
+    async function renderFromMake(){
+    //   const r = await fetch('https://hook.us2.make.com/8mvy5dm635xws55xkphbc1i2ji66gejq');
+    //   const j = await r.json();
+
   </script>
 </body>
 </html>
+
 
 
