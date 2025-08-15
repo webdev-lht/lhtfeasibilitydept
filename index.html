@@ -71,7 +71,7 @@
     <!-- Ready for Calling -->
     <div class="kpi ready collapsed" data-bs-toggle="collapse" data-bs-target="#cReady" aria-expanded="false">
       <div class="label">Properties Ready for Calling</div>
-      <div id="kpiReady" class="value">0</div>
+      <div id="kpiReady" class="value">726</div>
       <span class="chev">▾</span>
     </div>
     <div id="cReady" class="collapse">
@@ -154,67 +154,10 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // --- Data; replace with SharePoint/Make feed ---
-    // Expect a field like `lead_type` with values: 'EWT' | 'OTM' | 'EWT_from_OTM'
-    // and `status`: 'discovered' | 'filtered' | 'skip_traced' | 'sent_to_sales'
-    function demoData(){
-      return [
-        {lead_type:'EWT', status:'sent_to_sales'},
-        {lead_type:'OTM', status:'sent_to_sales'},
-        {lead_type:'EWT_from_OTM', status:'filtered'},
-        {lead_type:'EWT', status:'discovered'},
-        {lead_type:'OTM', status:'filtered'},
-        {lead_type:'EWT', status:'sent_to_sales'}
-      ];
-    }
-
-    function countByType(items){
-      const c = {EWT:0, OTM:0, EWT_from_OTM:0};
-      for(const it of items){
-        const k = (it.lead_type||'').toString();
-        if(k in c) c[k]++;
-      }
-      return c;
-    }
-
-    function render(){
-      const data = demoData();
-      // Ready = sent_to_sales
-      const readyItems = data.filter(x=>x.status==='sent_to_sales');
-      const ready = readyItems.length;
-      const rC = countByType(readyItems);
-
-      // Skip = filtered
-      const skipItems = data.filter(x=>x.status==='filtered');
-      const skip = skipItems.length;
-      const sC = countByType(skipItems);
-
-      // Explored today = all today; demo uses all rows
-      const exploredItems = data; // TODO: filter by CST date if needed
-      const explored = exploredItems.length;
-      const eC = countByType(exploredItems);
-
-      document.getElementById('kpiReady').textContent = ready;
-      document.getElementById('readyEWT').textContent = rC.EWT;
-      document.getElementById('readyOTM').textContent = rC.OTM;
-      document.getElementById('readyEWTOTM').textContent = rC.EWT_from_OTM;
-
-      document.getElementById('kpiSkip').textContent = skip;
-      document.getElementById('skipEWT').textContent = sC.EWT;
-      document.getElementById('skipOTM').textContent = sC.OTM;
-      document.getElementById('skipEWTOTM').textContent = sC.EWT_from_OTM;
-
-      document.getElementById('kpiExplored').textContent = explored;
-      document.getElementById('expEWT').textContent = eC.EWT;
-      document.getElementById('expOTM').textContent = eC.OTM;
-      document.getElementById('expEWTOTM').textContent = eC.EWT_from_OTM;
-    }
-
-    render();
-
   </script>
 </body>
 </html>
+
 
 
 
